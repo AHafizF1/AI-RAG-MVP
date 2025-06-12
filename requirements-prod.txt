@@ -1,4 +1,5 @@
 # Core Dependencies
+setuptools==78.1.1  # Security fix for CVE-2024-6345 and other vulnerabilities
 langchain>=0.1.0,<1.0.0
 langchain-openai>=0.0.1,<1.0.0
 langchain-google-genai>=0.0.1,<1.0.0
