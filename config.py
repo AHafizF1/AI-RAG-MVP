@@ -10,7 +10,7 @@ from enum import Enum
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(override=True)
 
 class ModelProvider(str, Enum):
     OPENAI = "openai"
@@ -28,6 +28,31 @@ PORT = int(os.getenv("PORT", "8000"))
 
 # Model Provider Selection
 MODEL_PROVIDER = ModelProvider(os.getenv("MODEL_PROVIDER", "gemini").lower())
+
+# RAG Configuration
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT", "gcp-starter")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "manufacturing-knowledge")
+
+# Document Processing
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
+
+# Embeddings
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "1536"))
+
+# Validation
+if not PINECONE_API_KEY and DEBUG:
+    logger.warning("PINECONE_API_KEY is not set. RAG features will be disabled.")
+    
+# Export settings for easier imports
+__all__ = [
+    'APP_NAME', 'APP_VERSION', 'DEBUG', 'API_PREFIX', 'HOST', 'PORT',
+    'MODEL_PROVIDER', 'PINECONE_API_KEY', 'PINECONE_ENVIRONMENT',
+    'PINECONE_INDEX_NAME', 'CHUNK_SIZE', 'CHUNK_OVERLAP',
+    'EMBEDDING_MODEL', 'EMBEDDING_DIMENSION'
+]
 
 # OpenAI Settings
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

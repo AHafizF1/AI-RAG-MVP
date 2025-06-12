@@ -16,6 +16,11 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
+# RAG Imports
+from rag import get_retriever, get_qa_chain
+from rag.vector_store import get_vector_store, initialize_pinecone
+from rag.document_loader import load_and_chunk_documents, save_documents_to_vector_store
+
 # Import configuration
 from config import (
     APP_NAME, APP_VERSION, DEBUG, MODEL_PROVIDER,
@@ -56,11 +61,12 @@ def expedite_order_tool(order_id: str) -> Dict[str, Any]:
     """
     return run_expedite_order_workflow(order_id)
 
-# Tool 2: Document Search (Mock)
+# Tool 2: Document Search with RAG
 @tool
 def document_search_tool(query: str) -> str:
     """
-    Use this tool to answer general questions about company policies or procedures.
+    Use this tool to answer general questions about company policies, procedures, 
+    or any other information from the knowledge base.
     
     Args:
         query (str): The user's question or query.
@@ -68,14 +74,35 @@ def document_search_tool(query: str) -> str:
     Returns:
         str: The answer to the query or a message if no information is found.
     """
-    query = query.lower()
-    if "return" in query:
-        return "Our return policy states that items can be returned within 30 days if defective."
-    elif "shipping" in query:
-        return "Standard shipping takes 3-5 business days. Expedited shipping is available."
-    elif "hours" in query or "time" in query:
-        return "Our customer service is available Monday to Friday, 9 AM to 5 PM EST."
-    return "I couldn't find specific information about that topic in our documents."
+    try:
+        # Initialize vector store if not already done
+        if get_vector_store() is None:
+            initialize_pinecone()
+        
+        # Get the QA chain
+        qa_chain = get_qa_chain(llm=get_llm())
+        
+        if not qa_chain:
+            logger.error("Failed to initialize QA chain")
+            return "I'm having trouble accessing the knowledge base. Please try again later."
+        
+        # Get the response
+        result = qa_chain({"query": query})
+        
+        # Format the response with sources
+        response = result["result"]
+        
+        # Add source documents if available
+        if "source_documents" in result and result["source_documents"]:
+            sources = set(doc.metadata.get("source", "Unknown") for doc in result["source_documents"])
+            if sources:
+                response += "\n\nSources: " + ", ".join(sources)
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error in document search: {str(e)}", exc_info=True)
+        return "I encountered an error while searching the knowledge base. Please try again later."
 
 def setup_agent() -> AgentExecutor:
     """

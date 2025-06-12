@@ -1,0 +1,31 @@
+# Core Dependencies (pinned to stable versions)
+fastapi>=0.104.0,<0.110.0  # Latest stable FastAPI
+uvicorn>=0.24.0,<0.30.0  # Latest stable Uvicorn
+python-multipart>=0.0.6,<0.1.0  # For file uploads
+python-dotenv>=1.0.0,<2.0.0  # For environment variable management
+
+# Vector Database
+pinecone-client>=3.0.0,<4.0.0  # Latest stable Pinecone client
+pinecone-text>=0.1.0,<0.2.0  # For Pinecone's text processing
+
+# LangChain (using latest compatible versions)
+langchain>=0.1.0,<0.2.0  # Core LangChain
+langchain-community>=0.0.10,<0.1.0  # Community integrations
+langchain-core>=0.1.0,<0.2.0  # Core components
+langchain-text-splitters>=0.0.1,<0.1.0  # Text splitting utilities
+langchain-openai>=0.0.1,<0.1.0  # OpenAI integration
+
+# Document Loaders
+unstructured>=0.10.0,<1.0.0  # For handling various document formats
+pypdf>=3.0.0,<4.0.0  # For PDF processing
+python-docx>=1.0.0,<2.0.0  # For Word documents
+openpyxl>=3.1.0,<4.0.0  # For Excel files
+
+
+# Utilities
+tqdm>=4.65.0,<5.0.0  # Progress bars
+python-magic>=0.4.27,<0.5.0  # File type detection
+
+# Required for Windows compatibility
+# Note: python-magic requires additional system dependencies on Windows
+# Install them using: pip install python-magic-bin==0.4.14

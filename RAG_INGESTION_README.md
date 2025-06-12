@@ -1,0 +1,153 @@
+# RAG Document Ingestion Pipeline
+
+This project implements a document ingestion pipeline for a RAG (Retrieval-Augmented Generation) system. It handles loading documents in various formats, splitting them into chunks, generating embeddings, and storing them in Pinecone for efficient retrieval.
+
+## Features
+
+- Supports multiple document formats: PDF, DOCX, TXT, CSV, and more
+- Chunking with configurable size and overlap
+- Integration with OpenAI for embeddings
+- Pinecone vector storage with namespace support
+- RESTful API for document ingestion
+- Health check endpoint
+
+## Prerequisites
+
+- Python 3.8+
+- Pinecone account and API key
+- OpenAI API key
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd manufacting-agent-mvp
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install the required dependencies:
+   ```bash
+   pip install -r requirements-rag.txt
+   ```
+
+4. Create a `.env` file in the project root with your API keys:
+   ```env
+   PINECONE_API_KEY=your_pinecone_api_key
+   PINECONE_ENVIRONMENT=your_pinecone_environment
+   PINECONE_INDEX_NAME=your_index_name
+   OPENAI_API_KEY=your_openai_api_key
+   ```
+
+## Usage
+
+### Command Line Interface
+
+You can ingest documents using the command line:
+
+```bash
+python rag_loader.py path/to/document1.pdf path/to/document2.docx --namespace my_namespace
+```
+
+### API Server
+
+Start the FastAPI server:
+
+```bash
+uvicorn api:app --reload
+```
+
+The API will be available at `http://localhost:8000`
+
+### API Endpoints
+
+#### Ingest Documents
+
+**POST** `/ingest`
+
+Upload one or more documents for ingestion.
+
+**Request:**
+- **files**: List of files to upload (required)
+- **namespace**: Pinecone namespace (default: "default")
+- **metadata**: Additional metadata to include with all documents (optional)
+
+**Example using curl:**
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/ingest?namespace=my_namespace' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'files=@document1.pdf' \
+  -F 'files=@document2.docx'
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Documents processed successfully",
+  "chunks_ingested": 42,
+  "documents_processed": 2,
+  "namespace": "my_namespace"
+}
+```
+
+#### Health Check
+
+**GET** `/health`
+
+Check if the API is running.
+
+**Response:**
+```json
+{
+  "status": "healthy"
+}
+```
+
+## Configuration
+
+The following environment variables can be configured:
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `PINECONE_API_KEY` | Pinecone API key | Yes | - |
+| `PINECONE_ENVIRONMENT` | Pinecone environment | Yes | - |
+| `PINECONE_INDEX_NAME` | Pinecone index name | Yes | - |
+| `OPENAI_API_KEY` | OpenAI API key | Yes | - |
+| `CHUNK_SIZE` | Size of text chunks | No | 500 |
+| `CHUNK_OVERLAP` | Overlap between chunks | No | 50 |
+
+## Error Handling
+
+The API returns appropriate HTTP status codes and error messages for various scenarios:
+
+- `400 Bad Request`: Invalid input or document processing error
+- `500 Internal Server Error`: Unexpected server error
+- `503 Service Unavailable`: Dependency service (Pinecone, OpenAI) unavailable
+
+## Testing
+
+To test the API, you can use the included test script:
+
+```bash
+python -m pytest tests/
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request

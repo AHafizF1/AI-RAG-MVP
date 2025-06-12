@@ -1,0 +1,10073 @@
+This is a test document for the RAG ingestion API.
+It contains sample text that we'll use to test the document ingestion functionality.
+
+Fixing Curl Request Metadata Format
+
+
+Me
+
+Curl
+
+curl -X 'POST' \
+  'http://127.0.0.1:8000/ingest?namespace=default' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'files=@New Text Document.txt;type=text/plain' \
+  -F 'metadata=hi'
+Request URL
+http://127.0.0.1:8000/ingest?namespace=default
+Server response
+Code	Details
+422	
+Error: Unprocessable Entity
+
+Response body
+Download
+{
+  "detail": [
+    {
+      "type": "dict_type",
+      "loc": [
+        "body",
+        "metadata"
+      ],
+      "msg": "Input should be a valid dictionary",
+      "input": "hi",
+      "url": "https://errors.pydantic.dev/2.11/v/dict_type"
+    }
+  ]
+}
+Response headers
+ access-control-allow-credentials: true 
+ access-control-allow-origin: * 
+ content-length: 168 
+ content-type: application/json 
+ date: Thu,12 Jun 2025 17:00:43 GMT 
+ server: uvicorn 
+
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+
+
+Revert
+I can see the issue with your API request. The error occurs because the metadata field expects a JSON dictionary, but you're sending a string "hi". Let me help you fix this.
+
+The error message indicates:
+
+"msg": "Input should be a valid dictionary"
+Here's how to fix your curl command:
+
+bash
+curl -X 'POST' \
+  'http://127.0.0.1:8000/ingest?namespace=default' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'files=@New Text Document.txt;type=text/plain' \
+  -F 'metadata={"key":"value"}'  # Changed from 'hi' to a JSON object
+The metadata parameter should be a JSON object. For example:
+
+-F 'metadata={"author":"user","type":"document"}'
+If you don't need any metadata, you can send an empty JSON object:
+
+-F 'metadata={}'
+Would you like me to help you modify your Python code to handle this request programmatically instead of using curl?
+
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+PS C:\Users\Afiz\CascadeProjects\manufacturing-agent-mvp> uvicorn api:app --reload
+←[32mINFO←[0m:     Will watch for changes in these directories: ['C:\\Users\\Afiz\\CascadeProjects\\manufacturing-agent-mvp']
+←[32mINFO←[0m:     Uvicorn running on ←[1mhttp://127.0.0.1:8000←[0m (Press CTRL+C to quit)
+←[32mINFO←[0m:     Started reloader process [←[36m←[1m15008←[0m] using ←[36m←[1mWatchFiles←[0m
+INFO:     Started server process [14472]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49698 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:55:08,061 - python_multipart.multipart - WARNING - Did not find CR at end of boundary (38)
+INFO:     127.0.0.1:49788 - "POST /ingest HTTP/1.1" 400 Bad Request
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 19:55:40,244 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:49842 - "POST /ingest HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50074 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+2025-06-12 19:57:43,354 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50175 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+2025-06-12 19:57:48,396 - rag_loader - ERROR - Failed to initialize Pinecone: init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+
+
+INFO:     127.0.0.1:50181 - "POST /ingest?namespace=default HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14472]
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+WARNING:  WatchFiles detected changes in 'rag_loader.py'. Reloading...
+INFO:     Started server process [15908]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 743, in lifespan
+    await receive()
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Program Files\Python311\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+INFO:     Started server process [7588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50316 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50316 - "GET /openapi.json HTTP/1.1" 200 OK
+C:\Program Files\Python311\Lib\site-packages\langchain_core\_api\deprecation.py:119: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 0.3.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  warn_deprecated(
+2025-06-12 20:00:00,171 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50386 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:00:46,092 - rag_loader - INFO - Connected to Pinecone index: samtest
+INFO:     127.0.0.1:50437 - "POST /ingest?namespace=default HTTP/1.1" 422 Unprocessable Entity
+2025-06-12 20:01:46,885 - rag_loader - INFO - Connected to Pinecone index: samtest
+2025-06-12 20:01:46,888 - rag_loader - INFO - Split 1 pages into 0 chunks
+2025-06-12 20:01:46,895 - rag_loader - WARNING - No chunks were generated from the provided documents
+INFO:     127.0.0.1:50523 - "POST /ingest?namespace=default HTTP/1.1" 200 OK
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+Configuration
+Integrated embedding
+The Inference API offers a single interface to easily embed, manage, and retrieve vector data using models hosted by Pinecone. Learn more
+
+llama-text-embed-v2
+llama-text-embed-v2
+
+NVIDIA – Hosted
+Modality
+
+Text
+
+Vector type
+
+Dense
+
+Max input
+
+2,048 tokens
+
+Starter limits
+
+5M tokens
+
+Field map
+Identify the field that contains the data to embed:
+
+Record field
+
+​
+field_map :
+
+text
+
+// Sample Record
+
+{
+
+"id": "doc1#chunk1",
+
+"text": "the quick brown fox jumped over the lazy dog",
+
+}
+
+Read parameters
+Model parameters when reading from an index.
+
+Truncation
+
+END
+
+Input type
+
+query
+
+Dimension
+
+1024
+
+Write parameters
+Model parameters when writing to an index.
+
+Truncation
+
+END
+
+Input type
+
+passage
+
+Dimension
+
+1024
+
+
+Feedback submitted
