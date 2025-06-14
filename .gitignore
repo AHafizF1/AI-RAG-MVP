@@ -39,6 +39,9 @@ env/
 .env
 !.env.example
 
+# NLTK Configuration
+nltk.txt
+
 # IDE
 .idea/
 .vscode/
@@ -162,6 +165,12 @@ htmlcov/
 # Jupyter Notebook
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
+
+# NLTK Data and Models
+nltk_data/
+*.pickle
+*.pkl
+
 # OS generated files
 .DS_Store
 .DS_Store?
