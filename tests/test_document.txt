@@ -1,0 +1,9 @@
+This is a test document for the RAG ingestion API.
+It contains sample text that we'll use to test the document ingestion functionality.
+
+The quick brown fox jumps over the lazy dog.
+This is a sample document for testing Pinecone vector storage.
+
+Document ID: test_doc_001
+Category: test
+Timestamp: 2025-06-14
