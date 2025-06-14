@@ -13,9 +13,13 @@ from langchain_pinecone import PineconeVectorStore
 
 from config import (
     PINECONE_API_KEY,
-    PINECONE_ENVIRONMENT,
     PINECONE_INDEX_NAME,
+    PINECONE_HOST,
+    PINECONE_CLOUD,
     PINECONE_REGION,
+    PINECONE_METRIC,
+    PINECONE_DIMENSIONS,
+    PINECONE_INDEX_TYPE,
     EMBEDDING_MODEL,
     EMBEDDING_DIMENSION
 )
@@ -37,8 +41,42 @@ def initialize_pinecone() -> None:
         return
     
     try:
+        # Initialize Pinecone client
         pc = Pinecone(api_key=PINECONE_API_KEY)
         logger.info("Successfully connected to Pinecone")
+        
+        # Check if index exists, create if it doesn't
+        existing_indexes = [index.name for index in pc.list_indexes()]
+        
+        if PINECONE_INDEX_NAME not in existing_indexes:
+            logger.info(f"Creating new Pinecone index: {PINECONE_INDEX_NAME}")
+            
+            # Configure serverless spec for serverless indexes
+            if PINECONE_INDEX_TYPE.lower() == 'serverless':
+                spec = ServerlessSpec(
+                    cloud=PINECONE_CLOUD.lower(),
+                    region=PINECONE_REGION.lower()
+                )
+            else:
+                # For pod-based indexes
+                spec = PodSpec(
+                    environment=PINECONE_CLOUD.lower(),
+                    pod_type="p1.x1",
+                    pods=1,
+                    pod_region=PINECONE_REGION.lower()
+                )
+            
+            # Create the index
+            pc.create_index(
+                name=PINECONE_INDEX_NAME,
+                dimension=PINECONE_DIMENSIONS,
+                metric=PINECONE_METRIC,
+                spec=spec
+            )
+            logger.info(f"Created Pinecone index: {PINECONE_INDEX_NAME}")
+        else:
+            logger.info(f"Using existing Pinecone index: {PINECONE_INDEX_NAME}")
+            
     except Exception as e:
         logger.error(f"Failed to initialize Pinecone: {str(e)}")
         raise
@@ -47,6 +85,8 @@ def get_vector_store() -> Optional[PineconeVectorStore]:
     """
     Get or create the Pinecone vector store.
     
+    For serverless indexes, we need to use the host parameter when connecting.
+    
     Returns:
         Optional[PineconeVectorStore]: The vector store instance or None if initialization failed.
     """
@@ -54,10 +94,17 @@ def get_vector_store() -> Optional[PineconeVectorStore]:
     
     if vector_store is not None:
         return vector_store
-    
-    if not PINECONE_API_KEY:
-        return None
-    
+        
+    if not pc:
+        initialize_pinecone()
+        if not pc:
+            return None
+            
+    # For serverless, we need to use the host parameter
+    index_kwargs = {}
+    if PINECONE_INDEX_TYPE.lower() == 'serverless' and PINECONE_HOST:
+        index_kwargs['host'] = PINECONE_HOST
+        
     try:
         # Initialize Pinecone client if not already done
         if pc is None:

@@ -28,11 +28,15 @@ PORT = int(os.getenv("PORT", "8000"))
 # Model Provider Selection
 MODEL_PROVIDER = ModelProvider(os.getenv("MODEL_PROVIDER", "gemini").lower())
 
-# RAG Configuration
+# RAG Configuration - Pinecone Serverless
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT", "gcp-starter")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "manufacturing-knowledge")
-PINECONE_REGION = os.getenv("PINECONE_REGION", "us-east-1")  # Default to us-east-1 if not specified
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "samtest")
+PINECONE_HOST = os.getenv("PINECONE_HOST")  # e.g., "your-index-name-12345.svc.region.pinecone.io"
+PINECONE_CLOUD = os.getenv("PINECONE_CLOUD", "aws")
+PINECONE_REGION = os.getenv("PINECONE_REGION", "us-east-1")
+PINECONE_METRIC = os.getenv("PINECONE_METRIC", "cosine")
+PINECONE_DIMENSIONS = int(os.getenv("PINECONE_DIMENSIONS", "1024"))
+PINECONE_INDEX_TYPE = os.getenv("PINECONE_INDEX_TYPE", "serverless")
 
 # Document Processing
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))

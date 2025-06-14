@@ -280,8 +280,10 @@ python-dotenv==1.1.0
 python-iso639==2025.2.18
     # via unstructured
 python-magic==0.4.27
-    # via unstructured
-python-magic-bin==0.4.14 ; platform_system == "Windows"
+    # via
+    #   -r requirements-rag.in
+    #   unstructured
+python-magic-bin==0.4.14
     # via -r requirements-rag.in
 python-multipart==0.0.20
     # via -r requirements-rag.in
