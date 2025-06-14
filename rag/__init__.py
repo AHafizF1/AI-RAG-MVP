@@ -2,7 +2,7 @@
 RAG (Retrieval-Augmented Generation) Module
 
 This module provides functionality for document retrieval and question answering
-using Pinecone as the vector store and OpenAI for embeddings.
+using Pinecone as the vector store with server-side embeddings.
 """
 
 from .vector_store import get_vector_store, initialize_vector_store

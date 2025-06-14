@@ -9,7 +9,7 @@ from typing import Optional
 import pinecone
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
-from langchain_openai import OpenAIEmbeddings
+# Server-side embeddings will be used instead of client-side
 
 from config import (
     PINECONE_API_KEY,
@@ -66,6 +66,8 @@ def get_vector_store() -> Optional[PineconeVectorStore]:
         # Check if index exists, create if not
         if PINECONE_INDEX_NAME not in pc.list_indexes().names():
             logger.info(f"Creating new Pinecone serverless index: {PINECONE_INDEX_NAME}")
+            
+            # Create index with server-side embeddings configuration for Llama Text Embed v2
             pc.create_index(
                 name=PINECONE_INDEX_NAME,
                 dimension=EMBEDDING_DIMENSION,
@@ -73,7 +75,8 @@ def get_vector_store() -> Optional[PineconeVectorStore]:
                 spec=ServerlessSpec(
                     cloud="aws",
                     region=PINECONE_REGION
-                )
+                ),
+                metadata_config={"indexed": ["*"]}  # Ensure all metadata is indexed for filtering
             )
             
             # Wait for index to be ready
@@ -81,15 +84,19 @@ def get_vector_store() -> Optional[PineconeVectorStore]:
             logger.info("Waiting for index to be ready...")
             time.sleep(30)  # Wait for index to be ready
         
-        # Initialize embeddings
-        # For llama-text-embed-v2, we use the default embedding model
-        # as Pinecone will handle the embeddings server-side
-        embeddings = OpenAIEmbeddings()
-        
-        # Initialize vector store
-        vector_store = PineconeVectorStore.from_existing_index(
+        # Initialize vector store with server-side embeddings using Llama Text Embed v2
+        vector_store = PineconeVectorStore(
             index_name=PINECONE_INDEX_NAME,
-            embedding=embeddings
+            embedding=None,  # Server-side embeddings will be used
+            text_key="text"  # Ensure text key is set for documents
+        )
+        
+        # Configure the index to use Llama Text Embed v2 for server-side embeddings
+        index = pc.Index(PINECONE_INDEX_NAME)
+        index.configure_metadata(
+            index_configuration={
+                "indexed": ["*"]  # Ensure all metadata is indexed for filtering
+            }
         )
         
         logger.info(f"Successfully initialized vector store with index: {PINECONE_INDEX_NAME}")

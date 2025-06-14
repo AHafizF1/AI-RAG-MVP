@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 class ModelProvider(str, Enum):
-    OPENAI = "openai"
     GEMINI = "gemini"
 
 # Application Settings
@@ -33,14 +32,16 @@ MODEL_PROVIDER = ModelProvider(os.getenv("MODEL_PROVIDER", "gemini").lower())
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT", "gcp-starter")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "manufacturing-knowledge")
+PINECONE_REGION = os.getenv("PINECONE_REGION", "us-east-1")  # Default to us-east-1 if not specified
 
 # Document Processing
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
 
 # Embeddings
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
-EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "1536"))
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "llama-text-embed-v2")
+# Llama Text Embed v2 supports 256, 512, 1024 (default), and 2048 dimensions
+EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "1024"))
 
 # Validation
 if not PINECONE_API_KEY and DEBUG:
@@ -51,13 +52,9 @@ __all__ = [
     'APP_NAME', 'APP_VERSION', 'DEBUG', 'API_PREFIX', 'HOST', 'PORT',
     'MODEL_PROVIDER', 'PINECONE_API_KEY', 'PINECONE_ENVIRONMENT',
     'PINECONE_INDEX_NAME', 'CHUNK_SIZE', 'CHUNK_OVERLAP',
-    'EMBEDDING_MODEL', 'EMBEDDING_DIMENSION'
+    'EMBEDDING_MODEL', 'EMBEDDING_DIMENSION', 'ModelProvider',
+    'GEMINI_API_KEY', 'GEMINI_MODEL', 'GEMINI_TEMPERATURE', 'GEMINI_SAFETY_SETTINGS'
 ]
-
-# OpenAI Settings
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.3"))
 
 # Gemini Configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")

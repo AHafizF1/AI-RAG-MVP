@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: development  # Use the development stage from Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app  # Mount current directory to /app for live code updates
+      - /app/.venv  # Exclude virtualenv from the bind mount
+      - /app/__pycache__  # Exclude Python cache
+    environment:
+      - ENVIRONMENT=development
+      # Application settings
+      - APP_DEBUG=true
+      - APP_RELOAD=true
+      # Database settings (update these as needed)
+      - DATABASE_URL=sqlite:///./app.db
+      # API keys and secrets (use .env file for production)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - PINECONE_API_KEY=${PINECONE_API_KEY:-}
+      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT:-}
+    env_file:
+      - .env  # Load environment variables from .env file
+    working_dir: /app
+    # Enable hot-reload for development
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    # Configure resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # Uncomment and configure these services as needed
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data/redis
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 3
+
+# volumes:
+#   redis_data:
+#     driver: local

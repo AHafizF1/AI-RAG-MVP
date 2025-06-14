@@ -6,9 +6,45 @@ It sets up the FastAPI application, defines the agent tools, and handles API end
 """
 import os
 import logging
-from typing import Dict, Any, Optional
+import asyncio
+from typing import Dict, Any, Optional, List
 from enum import Enum
 from dotenv import load_dotenv
+
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
+
+# Add src to path
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import evaluation modules
+from src.llm_client import LLMClient
+from src.evaluator import ResponseEvaluator, with_evaluation
+
+# LangSmith tracing
+try:
+    import langsmith
+    from langsmith import Client
+    from langchain_core.tracers.context import tracing_v2_enabled
+    
+    # Initialize LangSmith client
+    try:
+        client = Client()
+        logger.info("LangSmith client initialized successfully")
+    except Exception as e:
+        logger.warning(f"Failed to initialize LangSmith client: {e}")
+        client = None
+except ImportError as e:
+    logger.warning(f"LangSmith not installed: {e}")
+    client = None
 from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 from langchain.tools import tool
@@ -24,7 +60,6 @@ from rag.document_loader import load_and_chunk_documents, save_documents_to_vect
 # Import configuration
 from config import (
     APP_NAME, APP_VERSION, DEBUG, MODEL_PROVIDER,
-    OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE,
     GEMINI_API_KEY, GEMINI_MODEL, GEMINI_TEMPERATURE,
     GEMINI_SAFETY_SETTINGS, ModelProvider
 )
@@ -139,66 +174,81 @@ def setup_agent() -> AgentExecutor:
     # Return the agent executor
     return AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-def get_llm():
-    """Initialize and return the appropriate LLM based on configuration."""
+def get_llm(eval_mode: bool = False):
+    """Initialize and return the Gemini LLM with evaluation support.
+    
+    Args:
+        eval_mode: If True, use evaluation-specific model settings
+        
+    Returns:
+        Configured LLMClient instance with evaluation support
+    """
     try:
-        if MODEL_PROVIDER == ModelProvider.OPENAI:
-            from langchain_openai import ChatOpenAI
-            if not OPENAI_API_KEY or OPENAI_API_KEY == "your_openai_api_key_here":
-                raise ValueError("OpenAI API key is required but not set")
-            return ChatOpenAI(
-                model=OPENAI_MODEL,
-                temperature=OPENAI_TEMPERATURE,
-                openai_api_key=OPENAI_API_KEY
-            )
-        elif MODEL_PROVIDER == ModelProvider.GEMINI:
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            import google.generativeai as genai
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        import google.generativeai as genai
+        
+        if not GEMINI_API_KEY or GEMINI_API_KEY == "your_gemini_api_key_here":
+            raise ValueError("Gemini API key is required but not set")
             
-            if not GEMINI_API_KEY or GEMINI_API_KEY == "your_gemini_api_key_here":
-                raise ValueError("Gemini API key is required but not set")
-                
-            try:
-                # Configure the Gemini client with the API key
-                genai.configure(api_key=GEMINI_API_KEY)
-            
-                # Test the API key by making a simple call
-                models = genai.list_models()
-                if not models:
-                    raise ValueError("Failed to fetch models from Gemini API")
-            
-                # Create a GenerativeModel instance
-                model = genai.GenerativeModel(
-                    model_name=GEMINI_MODEL,
-                    generation_config={
-                        "temperature": GEMINI_TEMPERATURE,
-                    },
-                    safety_settings=GEMINI_SAFETY_SETTINGS
-                )
-            
-                # Initialize the chat model
-                chat = model.start_chat(history=[])
-            
-                # Return the configured ChatGoogleGenerativeAI instance
-                return ChatGoogleGenerativeAI(
-                    model=GEMINI_MODEL,
-                    temperature=GEMINI_TEMPERATURE,
-                    google_api_key=GEMINI_API_KEY,
-                    client=model,
-                    convert_system_message_to_human=True
-                )
-            except Exception as e:
-                logger.error(f"Error initializing Gemini client: {str(e)}")
-                raise ValueError(f"Failed to initialize Gemini client: {str(e)}")
+        # Configure model parameters based on mode
+        if eval_mode:
+            model_name = os.getenv("EVAL_GEMINI_MODEL", "gemini-1.5-flash-8b")
+            temperature = float(os.getenv("EVAL_GEMINI_TEMPERATURE", 0.3))
+            max_tokens = int(os.getenv("EVAL_GEMINI_MAX_TOKENS", 4096))
         else:
-            raise ValueError(f"Unsupported model provider: {MODEL_PROVIDER}")
+            model_name = GEMINI_MODEL
+            temperature = GEMINI_TEMPERATURE
+            max_tokens = 2048
+            
+        try:
+            # Configure the Gemini client with the API key
+            genai.configure(api_key=GEMINI_API_KEY)
+        
+            # Test the API key by making a simple call
+            models = genai.list_models()
+            if not models:
+                raise ValueError("Failed to fetch models from Gemini API")
+        
+            # Create a GenerativeModel instance
+            model = genai.GenerativeModel(
+                model_name=model_name,
+                generation_config={
+                    "temperature": temperature,
+                    "max_output_tokens": max_tokens,
+                },
+                safety_settings=GEMINI_SAFETY_SETTINGS
+            )
+        
+            # Initialize the base LLM
+            base_llm = ChatGoogleGenerativeAI(
+                model=model_name,
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+                google_api_key=GEMINI_API_KEY,
+                client=model,
+                convert_system_message_to_human=True
+            )
+            
+            # If not in eval mode, wrap with our LLMClient
+            if not eval_mode:
+                # Initialize the evaluator
+                evaluator = ResponseEvaluator()
+                # Create and return the LLM client with evaluation
+                return LLMClient(base_llm, evaluator)
+                
+            return base_llm
+            
+        except Exception as e:
+            logger.error(f"Error initializing Gemini client: {str(e)}")
+            raise ValueError(f"Failed to initialize Gemini client: {str(e)}")
     except Exception as e:
         logger.error(f"Error in get_llm: {str(e)}")
         raise
 
 def setup_agent() -> AgentExecutor:
-    """Set up and return the agent executor with the configured LLM."""
+    """Set up and return the agent executor with the configured LLM and evaluation."""
     try:
+        # Get the LLM with evaluation support
         llm = get_llm()
         
         # Define tools
@@ -260,19 +310,29 @@ def setup_agent() -> AgentExecutor:
 
 # Initialize the agent
 try:
-    agent_executor = setup_agent()
-    logger.info(f"Successfully initialized {MODEL_PROVIDER.value.upper()} agent")
+    # Enable tracing if LangSmith is configured
+    if os.getenv("LANGCHAIN_TRACING_V2", "").lower() == "true":
+        with tracing_v2_enabled(project_name=os.getenv("LANGCHAIN_PROJECT", "Manufacturing-Agent-MVP")):
+            agent_executor = setup_agent()
+        logger.info(f"Successfully initialized {MODEL_PROVIDER.value.upper()} agent with LangSmith tracing")
+    else:
+        agent_executor = setup_agent()
+        logger.info(f"Successfully initialized {MODEL_PROVIDER.value.upper()} agent")
 except Exception as e:
     logger.error(f"Failed to initialize agent: {str(e)}")
     agent_executor = None
 
 # Pydantic models
 class AgentQuery(BaseModel):
-    """Model for agent query requests."""
+    """Model for agent query requests with evaluation support."""
     query: str = Field(..., description="The user's query or request")
     conversation_id: Optional[str] = Field(
         None,
         description="Optional conversation ID for tracking multi-turn conversations"
+    )
+    evaluate: bool = Field(
+        True,
+        description="Whether to evaluate the response (default: True)"
     )
 
 class HealthCheckResponse(BaseModel):
@@ -284,67 +344,102 @@ class HealthCheckResponse(BaseModel):
     debug: bool
 
 # API endpoints
-@app.post("/api/chat")
+@app.post("/chat")
 async def chat_with_agent(query: AgentQuery):
     """
-    Endpoint to interact with the manufacturing agent.
+    Endpoint to interact with the manufacturing agent with built-in evaluation.
     
     Args:
         query (AgentQuery): The user's query and optional conversation ID.
         
     Returns:
-        Dict: The agent's response and metadata.
+        Dict: The agent's response and metadata, including evaluation results.
     """
     try:
-        if MODEL_PROVIDER == ModelProvider.GEMINI:
-            # For Gemini, we'll use a simpler approach without tools for now
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            import google.generativeai as genai
-            
-            # Configure Gemini
-            genai.configure(api_key=GEMINI_API_KEY)
-            model = genai.GenerativeModel(GEMINI_MODEL)
-            
-            # Create a chat session
-            chat = model.start_chat(history=[])
-            
-            # Send the message and get response
-            response = chat.send_message(query.query)
-            
-            # Return the response
-            return {
-                "response": response.text,
-                "conversation_id": query.conversation_id or "default-conversation",
-                "metadata": {
-                    "model": GEMINI_MODEL,
-                    "provider": "Gemini"
-                }
-            }
-        else:
-            # Process the query using the OpenAI agent
-            result = agent_executor.invoke({
-                "input": query.query,
-                "agent_scratchpad": []
-            })
-            
-            # Log the interaction
-            logger.info(f"Processed query: {query.query}")
-            
-            # Return the response
-            return {
-                "response": result.get("output", "No response generated"),
-                "conversation_id": query.conversation_id or "default-conversation",
-                "metadata": {
-                    "model": OPENAI_MODEL,
-                    "provider": "OpenAI"
-                }
-            }
+        logger.info(f"Received query: {query.query}")
+        
+        # Process the query using the agent
+        response = await agent_executor.ainvoke({
+            "input": query.query,
+            "chat_history": []  # Add conversation history if available
+        })
+        
+        # Extract the response text
+        response_text = response.get("output", "I'm sorry, I couldn't process your request.")
+        
+        # If the agent is an LLMClient, it will handle evaluation automatically
+        if hasattr(agent_executor, 'llm_chain') and hasattr(agent_executor.llm_chain, 'llm'):
+            llm = agent_executor.llm_chain.llm
+            if hasattr(llm, 'evaluator'):
+                # Evaluation runs in the background
+                asyncio.create_task(
+                    llm.evaluator.evaluate_response(
+                        inputs={"question": query.query},
+                        outputs={"answer": response_text}
+                    )
+                )
+        
+        return {
+            "response": response_text,
+            "conversation_id": query.conversation_id or "",
+            "status": "success"
+        }
         
     except Exception as e:
-        logger.error(f"Error processing query: {str(e)}", exc_info=True)
+        logger.error(f"Error processing query: {e}")
+        if DEBUG:
+            logger.exception("Error details:")
+        # Log the error for evaluation
+        if hasattr(agent_executor, 'llm_chain') and hasattr(agent_executor.llm_chain, 'llm'):
+            llm = agent_executor.llm_chain.llm
+            if hasattr(llm, 'evaluator'):
+                asyncio.create_task(
+                    llm.evaluator.evaluate_response(
+                        inputs={"question": query.query},
+                        outputs={"error": str(e)}
+                    )
+                )
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing your request: {str(e)}"
+            detail=f"An error occurred while processing your request: {str(e)}"
+        )
+
+@app.get("/evaluation/metrics", response_model=Dict[str, Any])
+async def get_evaluation_metrics():
+    """
+    Get evaluation metrics for the LLM responses.
+    
+    Returns:
+        Dict: Evaluation metrics including total responses, success rate, etc.
+    """
+    try:
+        if not hasattr(agent_executor, 'llm_chain') or not hasattr(agent_executor.llm_chain, 'llm'):
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="Evaluation metrics not available with current configuration"
+            )
+            
+        llm = agent_executor.llm_chain.llm
+        if not hasattr(llm, 'get_evaluation_metrics'):
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="Evaluation metrics not available with current LLM client"
+            )
+            
+        metrics = llm.get_evaluation_metrics()
+        return {
+            "status": "success",
+            "metrics": metrics
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting evaluation metrics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get evaluation metrics: {str(e)}"
         )
 
 @app.get("/api/health", response_model=HealthCheckResponse)

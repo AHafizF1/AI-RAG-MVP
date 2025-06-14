@@ -1,28 +1,167 @@
 # 🏭 Manufacturing Agent MVP
 
-A production-ready AI agent for manufacturing operations, supporting both Q&A and workflow automation with multiple LLM backends including OpenAI and Google Gemini.
+A production-ready AI agent for manufacturing operations, supporting both Q&A and workflow automation with Google Gemini as the LLM backend.
 
 ## ✨ Features
 
-- **Multiple LLM Backends**: Seamless integration with OpenAI and Google Gemini
+- **LLM Backend**: Powered by Google Gemini
 - **Order Management**: Automate manufacturing order workflows and expediting
 - **Document Intelligence**: Advanced Q&A for policies, procedures, and documentation
 - **Modular Architecture**: Easily extensible with custom tools and workflows
 - **RESTful API**: Robust HTTP interface for system integration
 - **Secure Configuration**: Environment-based settings with sensible defaults
 - **Production Ready**: Logging, error handling, and monitoring support
+- **Containerized**: Docker support for easy deployment
+- **Reproducible Builds**: Pinned dependencies with pip-tools
+
+## 📊 Evaluation System
+
+The Manufacturing Agent includes a robust evaluation system to monitor and improve LLM response quality. The system automatically evaluates every LLM response using LangSmith and custom evaluators.
+
+### 🔑 Environment Variables
+
+Add these to your `.env` file for evaluation:
+
+```
+# Evaluation Configuration
+EVAL_ENABLED=true
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_PROJECT=manufacturing-agent-evals
+LANGCHAIN_API_KEY=your_langsmith_api_key
+
+# Optional: Override default evaluation model
+EVAL_GEMINI_MODEL=gemini-pro
+EVAL_GEMINI_TEMPERATURE=0.3
+EVAL_GEMINI_MAX_TOKENS=2048
+```
+
+### 🛠 Running Evaluations
+
+1. **Automatic Evaluation**
+   - Enabled by default for all LLM responses when `EVAL_ENABLED=true`
+   - Runs asynchronously in the background to avoid latency
+
+2. **Manual Evaluation**
+   ```python
+   from src.evaluator import ResponseEvaluator
+   
+   evaluator = ResponseEvaluator()
+   
+   # Evaluate a response
+   eval_result = await evaluator.evaluate_response(
+       inputs={"question": "Sample question"},
+       outputs={"answer": "Sample answer"}
+   )
+   ```
+
+3. **Viewing Evaluation Results**
+   - Access metrics via API: `GET /evaluation/metrics`
+   - View detailed traces in LangSmith dashboard
+
+### 📈 Evaluation Metrics
+
+Key metrics tracked:
+- **Correctness**: Factual accuracy of responses
+- **Completeness**: Coverage of required information
+- **Relevance**: Appropriateness to the query
+- **Helpfulness**: Practical utility of the response
+
+### 🧪 Testing Evaluation
+
+Run the test script:
+```bash
+python -m pytest tests/test_evaluation.py -v
+```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.8+
-- Python virtual environment (recommended)
-- API Key for your preferred LLM provider:
-  - [OpenAI API Key](https://platform.openai.com/api-keys)
-  - [Google AI Studio API Key](https://makersuite.google.com/app/apikey)
+- Docker (recommended)
+- OR Python 3.11+ with pip
+- [Google AI Studio API Key](https://makersuite.google.com/app/apikey)
 
-### Installation
+## 🐳 Docker Setup
+
+### Option 1: Docker Compose (Recommended for Development)
+
+The easiest way to get started with development is using Docker Compose:
+
+1. **Create environment file**:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` with your API keys and configuration.
+
+2. **Start the development server**:
+   ```bash
+   docker-compose up --build
+   ```
+   This will:
+   - Build the development image with hot-reload enabled
+   - Mount your source code as a volume for live updates
+   - Start the server on `http://localhost:8000`
+
+3. **View logs**:
+   ```bash
+   docker-compose logs -f
+   ```
+
+4. **Run tests**:
+   ```bash
+   docker-compose exec app pytest
+   ```
+
+### Option 2: Manual Docker Build (Production)
+
+1. **Generate locked requirements files**:
+   ```bash
+   pip install pip-tools
+   pip-compile --generate-hashes requirements-core.in --output-file=requirements-core.txt
+   pip-compile --generate-hashes requirements-rag.in --output-file=requirements-rag.txt
+   pip-compile --generate-hashes requirements-dev.in --output-file=requirements-dev.txt
+   ```
+
+2. **Build the production image**:
+   ```bash
+   docker build -t manufacturing-agent .
+   ```
+
+3. **Run the container**:
+   ```bash
+   docker run -p 8000:8000 --env-file .env manufacturing-agent
+   ```
+
+   The API will be available at `http://localhost:8000`
+
+### Development vs Production
+
+- **Development**: Uses `docker-compose.yml` with hot-reload enabled
+- **Production**: Uses multi-stage Dockerfile with optimized builds
+
+## 🛠 Development Workflow
+
+### Prerequisites
+- Python 3.11+
+- pip-tools (`pip install pip-tools`)
+- Docker and Docker Compose (recommended)
+
+### Development with Docker (Recommended)
+
+1. Start the development environment:
+   ```bash
+   docker-compose up --build
+   ```
+2. The server will automatically reload when you make changes to the code.
+3. Access the API at `http://localhost:8000`
+4. Run tests:
+   ```bash
+   docker-compose exec app pytest
+   ```
+
+### Local Development (Without Docker)
+
+### Setup
 
 1. **Clone the repository**
    ```bash
@@ -43,7 +182,15 @@ A production-ready AI agent for manufacturing operations, supporting both Q&A an
 
 3. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   # Install pip-tools if not already installed
+   pip install pip-tools
+   
+   # Generate locked requirements files
+   pip-compile --generate-hashes requirements-core.in --output-file=requirements-core.txt
+   pip-compile --generate-hashes requirements-rag.in --output-file=requirements-rag.txt
+   
+   # Install dependencies
+   pip install -r requirements-core.txt -r requirements-rag.txt
    ```
 
 4. **Configure environment variables**
@@ -57,18 +204,13 @@ A production-ready AI agent for manufacturing operations, supporting both Q&A an
    PORT=8000
    DEBUG=false
    
-   # Model Selection (openai or gemini)
+   # Model Configuration
    MODEL_PROVIDER=gemini
-   
-   # OpenAI Configuration
-   OPENAI_API_KEY=your_openai_api_key_here
-   OPENAI_MODEL=gpt-3.5-turbo
-   OPENAI_TEMPERATURE=0.3
    
    # Gemini Configuration
    GEMINI_API_KEY=your_gemini_api_key_here
-   GEMINI_MODEL=gemini-2.0-flash-lite-preview
-   GEMINI_TEMPERATURE=0.3
+   GEMINI_MODEL=gemini-pro
+   GEMINI_TEMPERATURE=0.73
    ```
 
 ## 🏃‍♂️ Running the Application
@@ -83,13 +225,54 @@ uvicorn main:app --reload
 uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-### API Documentation
+### 🌐 API Documentation
+
+Once the development server is running, you can access:
+
+- **Interactive API Docs**: `http://localhost:8000/docs`
+- **Alternative API Docs**: `http://localhost:8000/redoc`
+
+## 🔍 Development Tips
+
+### Running Tests
+```bash
+# Run all tests
+docker-compose exec app pytest
+
+# Run specific test file
+docker-compose exec app pytest tests/test_module.py
+
+# Run with coverage
+docker-compose exec app pytest --cov=app tests/
+```
+
+### Code Quality
+```bash
+# Format code with black
+docker-compose exec app black .
+
+# Check code style with flake8
+docker-compose exec app flake8
+
+# Type checking with mypy
+docker-compose exec app mypy .
+```
+
+### Managing Dependencies
+- Add new packages to the appropriate `.in` file
+- Regenerate requirements files:
+  ```bash
+  docker-compose exec app pip-compile --generate-hashes requirements-core.in
+  docker-compose exec app pip-compile --generate-hashes requirements-rag.in
+  docker-compose exec app pip-compile --generate-hashes requirements-dev.in
+  ```
+
+## 📚 Documentation
 Once running, access the interactive API documentation at:
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 
 ## 🛠️ Development
-
 ### Project Structure
 ```
 manufacturing-agent-mvp/
@@ -135,31 +318,31 @@ mypy .
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🤖 Supported Models
 
-- Built with FastAPI and Pydantic
-- Powered by OpenAI and Google Gemini
-- Inspired by modern AI agent architectures
-   - For OpenAI: Set `OPENAI_API_KEY`
-   - For Gemini: Set `GEMINI_API_KEY`
-   - Set `MODEL_PROVIDER` to either 'openai' or 'gemini'
+This project uses Google Gemini as the LLM provider.
+
+### Google Gemini
+- gemini-pro (recommended)
+
+### Configuration
+- Set `GEMINI_API_KEY` to your Google AI Studio API key
 
 ## Configuration
 
 Copy `.env.example` to `.env` and update the following variables:
 
 ### Model Selection
-- `MODEL_PROVIDER`: Either 'openai' or 'gemini' (default: 'gemini')
+- `MODEL_PROVIDER`: 'gemini' (default: 'gemini')
 
-### OpenAI Configuration (required if using OpenAI)
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `OPENAI_MODEL`: Model to use (default: 'gpt-3.5-turbo')
-- `OPENAI_TEMPERATURE`: 0.0 to 1.0 (default: 0.3)
+### Model Configuration
 
-### Gemini Configuration (required if using Gemini)
-- `GEMINI_API_KEY`: Your Google API key with Vertex AI enabled
-- `GEMINI_MODEL`: Model to use (default: 'gemini-1.5-pro')
-- `GEMINI_TEMPERATURE`: 0.0 to 1.0 (default: 0.3)
+You can configure the following model settings in your `.env` file:
+
+### Gemini Settings
+- `GEMINI_API_KEY`: Your Google AI Studio API key (required)
+- `GEMINI_MODEL`: The Gemini model to use (default: `gemini-pro`)
+- `GEMINI_TEMPERATURE`: Controls randomness (0.0 to 1.0, default: 0.7)
 
 ### Feature Flags
 - `ENABLE_MES_INTEGRATION`: Enable Manufacturing Execution System integration
