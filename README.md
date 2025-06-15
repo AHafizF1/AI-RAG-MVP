@@ -450,3 +450,88 @@ To add new capabilities:
 ## License
 
 MIT
+
+---
+
+# Morphik.ai Integration for Your Application
+
+This project integrates Morphik.ai as the knowledge backbone for this application, following the provided concise guide.
+It includes services for document ingestion, question-answering (RAG), and a FastAPI endpoint to expose these functionalities.
+
+## Morphik.ai Setup (Prerequisite)
+
+This application requires a running self-hosted Morphik instance.
+
+1.  **Clone Morphik Core**:
+    If you haven't already, clone the \`morphik-core\` repository:
+    \`\`\`bash
+    git clone https://github.com/ModernMemory/morphik-core.git
+    cd morphik-core
+    \`\`\`
+
+2.  **Run Morphik Server**:
+    Use Docker Compose to start the Morphik server. The \`--profile ollama\` flag includes the Ollama service for local LLM support, which is recommended.
+    \`\`\`bash
+    docker compose --profile ollama up --build -d
+    \`\`\`
+    This command will build the necessary Docker images and start the Morphik services in detached mode.
+    Your Morphik instance should now be running and accessible (typically at \`http://localhost:8000\` or as configured).
+
+## Implemented Services
+
+The core functionality is organized within the \`morphik_app\` directory:
+
+*   **\`morphik_app/database.py\`**: Initializes the connection to your Morphik instance (\`db = Morphik()\`).
+*   **\`morphik_app/ingestion_service.py\`**:
+    *   Handles document ingestion into Morphik.
+    *   Includes \`ingest_new_document(file_path: str, user_id: str)\` which processes a file, applies metadata (e.g., \`owner_id\`, \`category\`), and can use rules for structured data extraction (e.g., \`Invoice\` Pydantic model).
+*   **\`morphik_app/chat_service.py\`**:
+    *   Provides question-answering capabilities.
+    *   Includes \`simple_rag_answer(query: str, user_id: str)\` which performs a RAG (Retrieve, Augment, Generate) query against the documents accessible by the \`user_id\`.
+*   **\`morphik_app/main.py\`**:
+    *   Exposes the services via a FastAPI application.
+    *   Provides a \`/chat\` endpoint that accepts a query and user ID, returning an answer and sources.
+
+## Running the Application (Example with Uvicorn)
+
+To run the FastAPI application:
+
+1.  **Install Dependencies**:
+    Make sure you have \`fastapi\` and \`uvicorn\` installed, along with the \`morphik\` client library and \`pydantic\`.
+    \`\`\`bash
+    pip install fastapi uvicorn morphik-client pydantic
+    \`\`\`
+
+2.  **Start Uvicorn Server**:
+    From the root directory of this project:
+    \`\`\`bash
+    uvicorn morphik_app.main:app --reload
+    \`\`\`
+    The API will typically be available at \`http://127.0.0.1:8000\`.
+
+## Running Tests
+
+The project includes unit tests for services and an end-to-end test for the API.
+
+1.  **Install Test Dependencies** (if not already covered by application dependencies):
+    \`\`\`bash
+    pip install unittest # Usually built-in
+    \`\`\`
+    Ensure \`fastapi\` (for \`TestClient\`) is installed.
+
+2.  **Navigate to the tests directory or run from root**:
+    You can run tests using Python's \`unittest\` module.
+
+    From the project root directory:
+    \`\`\`bash
+    python -m unittest discover tests
+    \`\`\`
+    Or, to run a specific test file:
+    \`\`\`bash
+    python -m unittest tests.test_chat_service
+    \`\`\`
+
+## Further Information
+
+For more details on Morphik.ai, its capabilities, and advanced features, please visit the official website:
+[https://www.morphik.ai/](https://www.morphik.ai/)
