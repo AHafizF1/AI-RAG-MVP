@@ -1,0 +1,48 @@
+# In: morphik_pipeline/pipeline.yaml
+name: manufacturing_rag_pipeline
+
+components:
+  # 1. The entry point for the user's question
+  - name: user_input
+    type: morphik.Input
+
+  # 2. Our custom, production-ready retriever component
+  - name: knowledge_retriever
+    type: ManufacturingHybridRetriever # This should match the class name in manufacturing_retriever.py
+    config:
+      encoder_path: "morphik_pipeline/fitted_bm25.pkl"
+      k: 5 # Default number of documents to retrieve
+
+  # 3. A standard prompt formatting component
+  - name: rag_prompt_formatter
+    type: morphik.Prompt
+    config:
+      template: |
+        Use the following manufacturing documents to answer the question.
+        If the answer is not in the documents, state that you do not have enough information.
+
+        Context:
+        {documents}
+
+        Question: {query}
+        Answer:
+
+  # 4. Our custom, secure Gemini LLM component
+  - name: gemini_generator
+    type: GeminiLLM # This should match the class name in gemini_llm.py
+    config:
+      model_name: "gemini-pro"
+      temperature: 0.73
+
+# This defines how data flows from one component to the next
+flow:
+  - from: user_input.query
+    to: knowledge_retriever.query
+
+  - from:
+      - knowledge_retriever.documents
+      - user_input.query
+    to: rag_prompt_formatter
+
+  - from: rag_prompt_formatter.text
+    to: gemini_generator.prompt

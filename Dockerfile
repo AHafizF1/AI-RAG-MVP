@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
 WORKDIR /build
 
 # Copy only dependencies to leverage layer cache
-COPY requirements-core.txt requirements-rag.txt requirements-dev.txt ./
+COPY requirements-core.txt requirements-rag.txt requirements-dev.txt requirements-morphik.txt ./
 
 # Use pip cache mount for faster wheel builds
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -21,7 +21,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip wheel --no-cache-dir --wheel-dir wheels \
       -r requirements-core.txt \
       -r requirements-rag.txt \
-      -r requirements-dev.txt
+      -r requirements-dev.txt \
+      -r requirements-morphik.txt
 
 
 # ─── Runtime stage ───────────────────────────────────
@@ -65,11 +66,12 @@ USER root
 
 # Install development dependencies
 COPY --from=builder /build/wheels /wheels
-COPY requirements-dev.txt .
+COPY requirements-dev.txt requirements-morphik.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir --no-index --find-links=/wheels \
-      -r requirements-dev.txt && \
-    rm -rf /wheels requirements-dev.txt
+      -r requirements-dev.txt \
+      -r requirements-morphik.txt && \
+    rm -rf /wheels requirements-dev.txt requirements-morphik.txt
 
 # Switch back to non-root user
 USER appuser
