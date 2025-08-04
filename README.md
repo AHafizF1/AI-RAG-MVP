@@ -2,7 +2,7 @@
 
 A production-ready AI agent for manufacturing operations, supporting both Q&A and workflow automation with Google Gemini as the LLM backend.
 
-## ✨ Features
+## ✨ Features(NOT ALL ARE IMPLEMENTED 😶)
 
 - **LLM Backend**: Powered by Google Gemini
 - **Order Management**: Automate manufacturing order workflows and expediting
